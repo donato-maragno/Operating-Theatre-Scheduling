@@ -20,7 +20,7 @@ class Sala {
     
     //Occupa un blocco di slot libero con un paziente
     public void setSlots(Paziente paziente){
-        int nSlot = this.getNumSlot(paziente.getDurata());
+        int nSlot = Sala.getNumSlot(paziente.getDurata());
         int c = 0;
         for (int i = 0; i < buffer.size() && c < nSlot; i++){
             if(buffer.get(i).isFree()){
@@ -35,9 +35,9 @@ class Sala {
     }
     
     public void replaceSlots (Paziente p, int start, int durata){
-        int nSlot = this.getNumSlot(durata);
+        int nSlot = Sala.getNumSlot(durata);
         
-        for(int i = this.getNumSlot(start); i < buffer.size() && nSlot > 0; i++){
+        for(int i = Sala.getNumSlot(start); i < buffer.size() && nSlot > 0; i++){
             buffer.get(i).rimpiazza(p);
             nSlot--;
         }
@@ -51,8 +51,16 @@ class Sala {
         return buffer.get(id);
     }
     
-    public int getNumSlot(int durata){
+    public static int getNumSlot(int durata){
         return (int) Math.ceil(durata/Ospedale.DURATASLOT);
+    }
+    
+    public int getId (){
+        return this.id;
+    }
+    
+    public int getBufferSize (){
+        return buffer.size();
     }
     
     public int countPaziente(Paziente paz){ //conta quanti slot ha occupato quel paziente
@@ -92,13 +100,13 @@ class Sala {
         return c;
     }
     
-    public int getTimeBySlot (int nSlot){
+    public static int getTimeBySlot (int nSlot){
         return nSlot*Ospedale.DURATASLOT;
     }
     
     //conta i blocchi liberi dopo tot minuti
     public int countFirstBlock(int minuti){
-        int nSlot = this.getNumSlot(minuti);
+        int nSlot = Sala.getNumSlot(minuti);
         boolean f = false;      //il blocco non è ancora finito
         int c = 0;
         for(int i = nSlot; i < buffer.size() && !f; i++)

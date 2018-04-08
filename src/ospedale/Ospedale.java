@@ -30,10 +30,12 @@ public class Ospedale {
             System.out.println("DBSpecialità = " + DBUnita_operative.size());
             ReadDBReparto();
             System.out.println("Reparto = " + reparto.size());
-            System.out.println("Seconda Sala " + reparto.get(1));
+           System.out.println("Seconda Sala " + reparto.get(1));
         } catch (IOException ex) {
             Logger.getLogger(Ospedale.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        
     }
     
     public static void ReadDBPazienti() throws IOException {
@@ -146,4 +148,42 @@ public class Ospedale {
             }
         }
     }
+    
+     public static ArrayList<Slot> nextCompatibleSlot(Paziente paz, Sala sala, int startSlot){ //la sala serve solo per capire da dove iniziare. L'array va istanziato però il contenuto è solo ADD da cose gia esistenti che prendo da reparto che è gia in questa classe
+        ArrayList<Slot> block= new ArrayList<Slot>();
+        int giorno = sala.getGiorno();
+        int firstSala = 0;
+        boolean t = false;
+        boolean tf = false; //terminare il for nel caso cambiasse il paziente dello slot
+        boolean g = false;
+        
+        for(int i = 0; !g; i++)
+            if(reparto.get(i).getGiorno() == giorno){
+                firstSala = reparto.get(i).getId();
+                g = true;
+            }
+        
+        
+        for(int i = firstSala; i < reparto.size() && !t; i++){
+            Sala s = reparto.get(i);
+            if(giorno != s.getGiorno())
+                startSlot = 0;
+            for(int id = startSlot; id < s.getBufferSize() && !tf; id++){
+                Slot sl = s.getSlot(id);
+                if(paz.getUnita_operativa().equals(sl.getSpecialita()))
+                    block.add(sl);
+                else
+                    tf = true;
+            }
+            if(block.size() >= Sala.getNumSlot(paz.getDurata()))
+                t = true;
+            else{
+                tf = false;
+                block.clear();
+            }
+        }
+            
+        return block;    
+    }
+    
 }
