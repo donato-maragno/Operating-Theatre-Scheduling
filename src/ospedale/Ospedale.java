@@ -18,7 +18,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 public class Ospedale {
     static final String DBPAZIENTI = "istanze.xlsx";
     static final String DBREPARTO = "outputAM.xlsx";
-    static final int DURATASLOT = 30;
+    static final double DURATASLOT = 30.0;
+    static final int EXTRA_TIME = 1;
     static final ArrayList<Sala> reparto = new ArrayList<Sala>();
     static final ArrayList<Paziente> DBPazienti = new ArrayList<Paziente>();
     static final TreeSet<Specialita> DBUnita_operative = new TreeSet<Specialita>();
@@ -30,7 +31,8 @@ public class Ospedale {
             System.out.println("DBSpecialità = " + DBUnita_operative.size());
             ReadDBReparto();
             System.out.println("Reparto = " + reparto.size());
-           System.out.println("Seconda Sala " + reparto.get(1));
+            System.out.println("Seconda Sala " + reparto.get(1));
+            nextCompatibleSlot(DBPazienti.get(96), reparto.get(3), 20);
         } catch (IOException ex) {
             Logger.getLogger(Ospedale.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -150,12 +152,17 @@ public class Ospedale {
     }
     
      public static ArrayList<Slot> nextCompatibleSlot(Paziente paz, Sala sala, int startSlot){ //la sala serve solo per capire da dove iniziare. L'array va istanziato però il contenuto è solo ADD da cose gia esistenti che prendo da reparto che è gia in questa classe
-        ArrayList<Slot> block= new ArrayList<Slot>();
+        ArrayList<Slot> block1 = new ArrayList<Slot>();
+        //ArrayList<Slot> zeros = new ArrayList<Slot>();
+        ArrayList<Slot> block2 = new ArrayList<Slot>();
+        
         int giorno = sala.getGiorno();
-        int firstSala = 0;
+        int firstSala = 0, newStartSlot = startSlot;
         boolean t = false;
         boolean tf = false; //terminare il for nel caso cambiasse il paziente dello slot
         boolean g = false;
+        boolean z = false;
+        boolean back = false; //è true quando ricomincio la scansione dalla sala che non ho terminato
         
         for(int i = 0; !g; i++)
             if(reparto.get(i).getGiorno() == giorno){
@@ -167,23 +174,47 @@ public class Ospedale {
         for(int i = firstSala; i < reparto.size() && !t; i++){
             Sala s = reparto.get(i);
             if(giorno != s.getGiorno())
-                startSlot = 0;
-            for(int id = startSlot; id < s.getBufferSize() && !tf; id++){
+                newStartSlot = 0;
+            else if(!back)          
+                newStartSlot = startSlot;
+            for(int id = newStartSlot; id < s.getBufferSize() && !tf; id++){
                 Slot sl = s.getSlot(id);
-                if(paz.getUnita_operativa().equals(sl.getSpecialita()))
-                    block.add(sl);
-                else
-                    tf = true;
+                if(paz.getUnita_operativa().equals(sl.getSpecialita())){
+                    if(!z)
+                        block1.add(sl);
+                    else
+                        block2.add(sl);
+                }else if(sl.isFree()){
+                    block2.add(sl);
+                    z = true;
+                }else{
+                    if(!block1.isEmpty())
+                        tf = true;                
+                }
+                newStartSlot = id;      
             }
-            if(block.size() >= Sala.getNumSlot(paz.getDurata()))
+            if (
+                    (block1.size() + block2.size() >= Sala.getNumSlot(paz.getDurata())) ||
+                    (!block1.isEmpty() && block2.isEmpty() && block1.get(block1.size()-1) == s.getSlot(s.getBufferSize()-1) && block1.size() + Ospedale.EXTRA_TIME >= Sala.getNumSlot(paz.getDurata())) ||
+                    (!block2.isEmpty() && block2.get(block2.size()-1) == s.getSlot(s.getBufferSize()-1) && block1.size() + block2.size() + Ospedale.EXTRA_TIME >= Sala.getNumSlot(paz.getDurata()))
+                ){
                 t = true;
-            else{
+                block1.addAll(block2);
+                //se si vuole allocare lo slot del "caso limite", occorre fare l'if (vedi ultime due condizioni sopra) e un new Slot con id "nuovo".
+            }else{
                 tf = false;
-                block.clear();
+                z = false;
+                block1.clear();
+                block2.clear();
+                if(newStartSlot < s.getBufferSize() - 1){        //se non ho finito di scansionare la sala, riprendo da dove l'ho lasciata
+                    i--;
+                    back = true;
+                }else                                       //finita la scansione della sala, resetto la variabile
+                    back = false;
             }
         }
             
-        return block;    
+        return block1;    
     }
     
 }

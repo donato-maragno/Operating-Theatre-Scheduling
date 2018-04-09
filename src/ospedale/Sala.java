@@ -101,7 +101,7 @@ class Sala {
     }
     
     public static int getTimeBySlot (int nSlot){
-        return nSlot*Ospedale.DURATASLOT;
+        return (int) (nSlot*Ospedale.DURATASLOT);
     }
     
     //conta i blocchi liberi dopo tot minuti
