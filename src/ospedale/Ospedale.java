@@ -5,9 +5,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Stack;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.util.Pair;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.FormulaEvaluator;
@@ -19,7 +22,7 @@ public class Ospedale {
     static final String DBPAZIENTI = "istanze.xlsx";
     static final String DBREPARTO = "outputAM.xlsx";
     static final double DURATASLOT = 30.0;
-    static final int EXTRA_TIME = 1;
+    static final int EXTRA_TIME = 1; //slot extra per operare pazienti in rischedulati 
     static final ArrayList<Sala> reparto = new ArrayList<Sala>();
     static final ArrayList<Paziente> DBPazienti = new ArrayList<Paziente>();
     static final TreeSet<Specialita> DBUnita_operative = new TreeSet<Specialita>();
@@ -32,7 +35,8 @@ public class Ospedale {
             ReadDBReparto();
             System.out.println("Reparto = " + reparto.size());
             System.out.println("Seconda Sala " + reparto.get(1));
-            nextCompatibleSlot(DBPazienti.get(96), reparto.get(3), 20);
+            nextCompatibleSlot(DBPazienti.get(96), reparto.get(3), 20);            
+            rischedulaEPosticipaPaz(new Stack<Pair<Sala,Paziente>>());
         } catch (IOException ex) {
             Logger.getLogger(Ospedale.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -151,7 +155,7 @@ public class Ospedale {
         }
     }
     
-     public static ArrayList<Slot> nextCompatibleSlot(Paziente paz, Sala sala, int startSlot){ //la sala serve solo per capire da dove iniziare. L'array va istanziato però il contenuto è solo ADD da cose gia esistenti che prendo da reparto che è gia in questa classe
+     public static Pair<ArrayList<Slot>,Integer> nextCompatibleSlot(Paziente paz, Sala sala, int startSlot){ //la sala serve solo per capire da dove iniziare. L'array va istanziato però il contenuto è solo ADD da cose gia esistenti che prendo da reparto che è gia in questa classe
         ArrayList<Slot> block1 = new ArrayList<Slot>();
         //ArrayList<Slot> zeros = new ArrayList<Slot>();
         ArrayList<Slot> block2 = new ArrayList<Slot>();
@@ -163,7 +167,8 @@ public class Ospedale {
         boolean g = false;
         boolean z = false;
         boolean back = false; //è true quando ricomincio la scansione dalla sala che non ho terminato
-        
+        Sala s = reparto.get(firstSala);
+        Pair<ArrayList<Slot>,Integer> p = new Pair<ArrayList<Slot>,Integer>(block1, s.getId());
         for(int i = 0; !g; i++)
             if(reparto.get(i).getGiorno() == giorno){
                 firstSala = reparto.get(i).getId();
@@ -172,7 +177,7 @@ public class Ospedale {
         
         
         for(int i = firstSala; i < reparto.size() && !t; i++){
-            Sala s = reparto.get(i);
+            s = reparto.get(i);
             if(giorno != s.getGiorno())
                 newStartSlot = 0;
             else if(!back)          
@@ -200,7 +205,7 @@ public class Ospedale {
                 ){
                 t = true;
                 block1.addAll(block2);
-                //se si vuole allocare lo slot del "caso limite", occorre fare l'if (vedi ultime due condizioni sopra) e un new Slot con id "nuovo".
+                                //se si vuole allocare lo slot del "caso limite", occorre fare l'if (vedi ultime due condizioni sopra) e un new Slot con id "nuovo".
             }else{
                 tf = false;
                 z = false;
@@ -214,7 +219,65 @@ public class Ospedale {
             }
         }
             
-        return block1;    
+        return p;
     }
-    
+     //se ho più di una settimana va fatto il controllo sul giorno e che quindi sto schedulando solo quella settimana
+    @SuppressWarnings("empty-statement")
+     public static ArrayList<Paziente> rischedulaEPosticipaPaz(Stack<Pair<Sala,Paziente>> daAssegnare){
+         ArrayList<Paziente> pazientiNextWeek = new ArrayList<>();
+         ArrayList<Sala> tmp;
+         tmp = (ArrayList<Sala>) reparto.clone();
+         
+         //questi vanno messi nel metodo che chiama quella funzione 
+         /*Sala s = Ritardo.salaDelPazienteDaRitardare();
+         Slot slotPazRitardato = Ritardo.slotPazienteDaRitardare(s);
+         Paziente pazRitardato = slotPazRitardato.getPaziente();
+         pazRitardato.setDurata(Ritardo.generateDelay()+pazRitardato.getDurata());//sto modificando la durata del mio paziente
+         int startSala = s.getId();
+         int startSlot = s.getStartSlotID(pazRitardato);
+         ArrayList<Slot> slotsCompatibili = null;
+         Sala salaCompatibili = null;
+         Paziente p = null;
+         for(int i = startSala; i < tmp.size(); i++){
+             for(int j = startSlot; j < tmp.get(i).getBufferSize(); j++){
+                if (j == startSlot){//stiamo parlando del paziente ritardato
+                    tmp.get(i).replaceSlots(pazRitardato, startSlot,pazRitardato.getDurata(), true);
+                }
+             }
+             
+         }*/
+         
+         //prendo il primo paziente da rimpiazzare 
+         //pop rimuove e salva!
+         Pair<Sala,Paziente> top = daAssegnare.pop();
+         Sala s = top.getKey();
+         int idSala = s.getId();
+         Paziente p = top.getValue();
+         Pair<ArrayList<Slot>,Integer> compatibleSlots = nextCompatibleSlot(p, s, EXTRA_TIME);
+         
+         if(!compatibleSlots.getKey().isEmpty()){
+            ArrayList<Slot> slotsCompatibili = compatibleSlots.getKey();         
+            int idSalaPerRimp = compatibleSlots.getValue();
+            int idStartSlotPerRimp = slotsCompatibili.get(0).getId(); //e se lui non dovesse trovare posto ma quello successivo nello stock può trovarlo?
+            tmp.get(idSalaPerRimp).replaceSlots(p, idSalaPerRimp, idStartSlotPerRimp, false);
+
+
+            for(int i = idStartSlotPerRimp; i<s.getBufferSize(); i++){
+                if(!tmp.get(idSala).getSlot(i).getPaziente().equals(s.getSlot(i).getPaziente())){
+                    if(!s.getSlot(i).getPaziente().equals(daAssegnare.firstElement().getValue())){ 
+                       Pair<Sala,Paziente> nuovoElemento = new Pair<Sala,Paziente>(reparto.get(idSala),reparto.get(idSala).getSlot(i).getPaziente());
+                       daAssegnare.addElement(nuovoElemento);
+                    }
+                }
+            }
+        }else
+            pazientiNextWeek.add(p);
+         
+         reparto.clear();
+         reparto.addAll(tmp);
+         if(!daAssegnare.isEmpty())
+            return rischedulaEPosticipaPaz(daAssegnare);
+         else
+            return pazientiNextWeek;    
+    }
 }

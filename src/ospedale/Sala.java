@@ -11,7 +11,6 @@ class Sala {
     protected int id;
     protected int giorno;
     protected ArrayList<Slot> buffer = new ArrayList<Slot>();
-    
     Sala (int id, int giorno, ArrayList<Slot> buffer){
         this.id = id;
         this.giorno = giorno;
@@ -33,14 +32,20 @@ class Sala {
         
                    
     }
-    
-    public void replaceSlots (Paziente p, int start, int durata){
+    //wip serve nel caso dovessimo usare il replaceSlots per un paziente la cui operazione ritarda
+    public void replaceSlots (Paziente p, int start, int durata, boolean wip){
         int nSlot = Sala.getNumSlot(durata);
-        
         for(int i = Sala.getNumSlot(start); i < buffer.size() && nSlot > 0; i++){
             buffer.get(i).rimpiazza(p);
             nSlot--;
+            
         }
+        if(wip)//solo per i pazienti ritardati che vengono operati negli ultimi slot del giorno
+            for(int i = Sala.getNumSlot(start) + (Sala.getNumSlot(durata) - nSlot); nSlot > 0; i++){
+                Slot s = new Slot(i, p.getUnita_operativa(), p);
+                buffer.add(s);
+                nSlot--;
+            }
     }
     
     public int getGiorno(){
@@ -116,6 +121,18 @@ class Sala {
                     f = true;
             }
         return c;
+    }
+    
+    public int getStartSlotID(Paziente p){
+        boolean t = false;
+        int id = -1;
+        for(int i = 0; i < this.getBufferSize() && !t; i++){
+            if (this.getSlot(i).getPaziente().equals(p)){
+                id = this.getSlot(i).getId();
+                t = true;
+            }
+        }
+        return id;
     }
     
     @Override
