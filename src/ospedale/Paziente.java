@@ -40,12 +40,17 @@ class Paziente {
     
     @Override
     public boolean equals(Object obj){
-         boolean r = false;
+        boolean r = false;
         if (obj instanceof Paziente){
             Paziente b = (Paziente) obj;
             if(this.id == b.getId())
                 r = true;
         }
         return r;
+    }
+    
+    public Paziente clonePaziente(){
+        Paziente clone = new Paziente(this.getId(), this.getUnita_operativa(), this.getDurata());
+        return clone;
     }
 }

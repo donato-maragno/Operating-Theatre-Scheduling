@@ -5,7 +5,7 @@ import java.util.Random;
 public class Ritardo {
     public static int generateDelay(){
         Random random = new Random();
-        int ritardo = random.nextInt(40);
+        int ritardo = random.nextInt(70);
         
         return ritardo;
     }

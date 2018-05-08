@@ -1,21 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
-    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="2">
-        <file>
-            <url>src/ospedale/Ospedale.java</url>
-            <bookmark id="1">
-                <name/>
-                <line>246</line>
-                <key/>
-            </bookmark>
-        </file>
-    </editor-bookmarks>
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="2"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/C:/Users/Donato/Documents/NetBeansProjects/Ospedale/src/ospedale/Ritardo.java</file>
             <file>file:/C:/Users/Donato/Documents/NetBeansProjects/Ospedale/src/ospedale/Paziente.java</file>
+            <file>file:/C:/Users/Donato/Documents/NetBeansProjects/Ospedale/src/ospedale/StackSet.java</file>
             <file>file:/C:/Users/Donato/Documents/NetBeansProjects/Ospedale/src/ospedale/Ospedale.java</file>
             <file>file:/C:/Users/Donato/Documents/NetBeansProjects/Ospedale/src/ospedale/Specialita.java</file>
+            <file>file:/C:/Users/Donato/Documents/NetBeansProjects/Ospedale/src/ospedale/Slot.java</file>
             <file>file:/C:/Users/Donato/Documents/NetBeansProjects/Ospedale/src/ospedale/Sala.java</file>
         </group>
     </open-files>

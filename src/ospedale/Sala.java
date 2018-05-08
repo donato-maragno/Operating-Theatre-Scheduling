@@ -33,19 +33,22 @@ class Sala {
                    
     }
     //wip serve nel caso dovessimo usare il replaceSlots per un paziente la cui operazione ritarda
-    public void replaceSlots (Paziente p, int start, int durata, boolean wip){
+    public int replaceSlots (Paziente p, int startSlot, int durata, boolean wip){
         int nSlot = Sala.getNumSlot(durata);
-        for(int i = Sala.getNumSlot(start); i < buffer.size() && nSlot > 0; i++){
+        int endSlot = startSlot;
+        for(int i = startSlot; i < buffer.size() && nSlot > 0; i++){
             buffer.get(i).rimpiazza(p);
             nSlot--;
-            
+            endSlot++;
         }
         if(wip)//solo per i pazienti ritardati che vengono operati negli ultimi slot del giorno
-            for(int i = Sala.getNumSlot(start) + (Sala.getNumSlot(durata) - nSlot); nSlot > 0; i++){
+            for(int i = Sala.getNumSlot(startSlot) + (Sala.getNumSlot(durata) - nSlot); nSlot > 0; i++){
                 Slot s = new Slot(i, p.getUnita_operativa(), p);
-                buffer.add(s);
+                this.addSlot(s);
                 nSlot--;
+                endSlot++;
             }
+        return endSlot;
     }
     
     public int getGiorno(){
@@ -123,16 +126,16 @@ class Sala {
         return c;
     }
     
-    public int getStartSlotID(Paziente p){
+    public int getStartSlot(Paziente p){
         boolean t = false;
-        int id = -1;
+        int index = -1;
         for(int i = 0; i < this.getBufferSize() && !t; i++){
-            if (this.getSlot(i).getPaziente().equals(p)){
-                id = this.getSlot(i).getId();
+            if (this.getSlot(i).getPaziente() != null && this.getSlot(i).getPaziente().equals(p)){
+                index = i;
                 t = true;
             }
         }
-        return id;
+        return index;
     }
     
     @Override
@@ -143,4 +146,25 @@ class Sala {
         return r;
     }
     
+    public Sala cloneSala(){
+        ArrayList<Slot> cloneList = new ArrayList<Slot>(this.getBufferSize());
+        for (Slot item : this.buffer) cloneList.add(item.cloneSlot());
+        Sala clone = new Sala(this.getId(), this.getGiorno(), cloneList);
+        return clone;
+    }
+    
+    @Override
+    public boolean equals(Object obj){
+        boolean r = false;
+        if (obj instanceof Sala){
+            Sala b = (Sala) obj;
+            if(this.id == b.getId() && this.giorno == b.getGiorno())
+                r = true;
+        }
+        return r;
+    }
+
+    public void addSlot(Slot extra_slot) {
+        this.buffer.add(extra_slot);
+    }
 }

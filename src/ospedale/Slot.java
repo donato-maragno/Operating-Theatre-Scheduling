@@ -41,7 +41,7 @@ class Slot {
     
     public boolean occupa(Paziente p){
         boolean r = true;
-        if(this.isFree() && p.getUnita_operativa() == this.specialita)
+        if(this.isFree() || p.getUnita_operativa() == this.specialita)
             this.pazAssistito = p;
         else
             r = false;
@@ -49,10 +49,23 @@ class Slot {
         return r;   
     }
     
+    public boolean libera(){
+        boolean r = false;
+        if(!this.isFree()){
+            this.pazAssistito = null;
+            r = true;
+        }
+        return r;
+    }
+    
     public void rimpiazza(Paziente p){
         this.pazAssistito = p;
         this.specialita = p.getUnita_operativa();
     }
     
+    public Slot cloneSlot(){
+        Slot clone = new Slot(this.getId(), this.getSpecialita(), ((this.getPaziente() != null) ? this.getPaziente().clonePaziente() : null));
+        return clone;
+    }
     
 }
