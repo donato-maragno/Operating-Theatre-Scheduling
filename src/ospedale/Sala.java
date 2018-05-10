@@ -33,22 +33,23 @@ class Sala {
                    
     }
     //wip serve nel caso dovessimo usare il replaceSlots per un paziente la cui operazione ritarda
-    public int replaceSlots (Paziente p, int startSlot, int durata, boolean wip){
+    //ho messo void
+    public void replaceSlots (Paziente p, int startSlot, int durata, boolean wip){
         int nSlot = Sala.getNumSlot(durata);
-        int endSlot = startSlot;
+        //int endSlot = startSlot;
         for(int i = startSlot; i < buffer.size() && nSlot > 0; i++){
             buffer.get(i).rimpiazza(p);
             nSlot--;
-            endSlot++;
+            //endSlot++;
         }
         if(wip)//solo per i pazienti ritardati che vengono operati negli ultimi slot del giorno
-            for(int i = Sala.getNumSlot(startSlot) + (Sala.getNumSlot(durata) - nSlot); nSlot > 0; i++){
+            for(int i = startSlot + (Sala.getNumSlot(durata) - nSlot); nSlot > 0; i++){
                 Slot s = new Slot(i, p.getUnita_operativa(), p);
                 this.addSlot(s);
                 nSlot--;
-                endSlot++;
+                //endSlot++;
             }
-        return endSlot;
+        //return endSlot;
     }
     
     public int getGiorno(){
@@ -71,6 +72,11 @@ class Sala {
         return buffer.size();
     }
     
+    public ArrayList<Slot> getSlots()
+    {
+        return this.buffer;
+    }
+    
     public int countPaziente(Paziente paz){ //conta quanti slot ha occupato quel paziente
         boolean t = true;
         int c = 0;
@@ -84,6 +90,16 @@ class Sala {
         }
         
         return c;
+    }
+    //mi ridà Index dell'ultimo slot del paziente
+    public int getLastSlotIndex (Paziente p){
+        return this.getStartSlotIndex(p) + this.countPaziente(p);
+    }
+    
+    //rimpiazzo una sala con un'altra
+    public void rimpiazzaSala (Sala s){
+        this.buffer.removeAll(this.buffer);
+        this.buffer.addAll(s.buffer);
     }
     // in totale, non consecutivi
     public int countFree(){ 
@@ -126,7 +142,7 @@ class Sala {
         return c;
     }
     
-    public int getStartSlot(Paziente p){
+    public int getStartSlotIndex(Paziente p){
         boolean t = false;
         int index = -1;
         for(int i = 0; i < this.getBufferSize() && !t; i++){
@@ -152,6 +168,16 @@ class Sala {
         Sala clone = new Sala(this.getId(), this.getGiorno(), cloneList);
         return clone;
     }
+    
+    public void liberaSlot(ArrayList<Slot> listaSlotDaLib){
+        for (int i = 0; i < this.getBufferSize(); i++){
+            for(int j = 0; j < listaSlotDaLib.size(); j++)
+                if(this.getSlot(i).equals(listaSlotDaLib.get(j)))
+                    this.getSlot(i).libera();
+        }
+    }
+    
+    
     
     @Override
     public boolean equals(Object obj){

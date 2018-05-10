@@ -7,7 +7,7 @@ package ospedale;
  */
 class Slot {
     protected int id;//da 1 a 24
-    protected Specialita specialita;
+    protected Specialita specialita;//del dott
     protected Paziente pazAssistito; 
     
     Slot (int id, Specialita specialita, Paziente paziente){

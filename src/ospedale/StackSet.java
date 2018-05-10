@@ -11,17 +11,17 @@ import javafx.util.Pair;
  * @author Donato
  */
 public class StackSet{
-    LinkedList<Pair<Sala,Paziente>> s;
+    LinkedList <Pair<Sala,Pair<Paziente, Integer>>> s;
     
     public StackSet(){
-        s = new LinkedList<Pair<Sala,Paziente>>();
+        s = new LinkedList <Pair<Sala,Pair<Paziente, Integer>>>();
     }
     
-    public void push (Pair<Sala,Paziente> new_item){
+    public void push (Pair<Sala,Pair<Paziente, Integer>> new_item){
         boolean thereis = false;
-        Iterator<Pair<Sala,Paziente>> it = this.s.iterator();
+        Iterator<Pair<Sala,Pair<Paziente, Integer>>> it = this.s.iterator();
         while(it.hasNext()){
-            Pair<Sala,Paziente> item = it.next();
+            Pair<Sala,Pair<Paziente, Integer>> item = it.next();
             if(new_item.getValue().equals(item.getValue()))
                 thereis = true;
         }
@@ -30,8 +30,12 @@ public class StackSet{
             this.s.push(new_item);
     }
     
-    public Pair<Sala,Paziente> remove(){
-        return this.s.remove();
+    public Pair<Sala,Pair<Paziente, Integer>> remove(){
+        return this.s.pollLast();
+    }
+    
+    public Pair<Sala,Pair<Paziente, Integer>> prendiUltimo(){
+        return this.s.getFirst();
     }
     
     public boolean isEmpty(){
