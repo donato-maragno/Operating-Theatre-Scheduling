@@ -231,113 +231,6 @@ public class Ospedale {
         else
             risultato = new Pair<ArrayList<Slot>,Sala>(new ArrayList<Slot>(), salaRisultato);
         
-        
-       /* int giorno = sala.getGiorno();
-        int firstSala = Ospedale.cercaSala(sala), newStartSlot = startSlot;
-        boolean t = false;
-        boolean tf = false; //terminare il for nel caso cambiasse il paziente dello slot
-        boolean g = false;
-        boolean z = false;
-        boolean back = false; //è true quando ricomincio la scansione dalla sala che non ho terminato
-        boolean add_last_slot = false;
-        boolean nuovo = true;
-        Sala s = reparto.get(firstSala);
-        Pair<ArrayList<Slot>,Sala> p = null;//new Pair<ArrayList<Slot>,Sala>(block1, s);
-        for(int i = 0; !g; i++)
-            if(reparto.get(i).getGiorno() == giorno){
-                firstSala = i;
-                g = true;
-            }
-        
-        
-        for(int i = firstSala; i < reparto.size() && !t; i++){
-            s = reparto.get(i);
-            p = new Pair<ArrayList<Slot>,Sala>(block1, s);
-            if(giorno > s.getGiorno())
-                newStartSlot = 0;
-            else if(!back)          
-                newStartSlot = startSlot;
-            for(int id = newStartSlot; id < s.getBufferSize() && !tf; id++){
-                Slot sl = s.getSlot(id);
-                if(nuovo){
-                    block1.removeAll(block1);//lo azzero
-                    block2.removeAll(block2);
-                }
-                if(sl.isFree()){
-                    block2.add(sl);
-                    nuovo = false;
-                }
-                else if(paz.getUnita_operativa().equals(sl.getSpecialita())){
-                    block1.add(sl);
-                    nuovo = false;
-                }
-                else
-                    nuovo = true;
-                if(
-                (!block1.isEmpty() && block1.size() >= Sala.getNumSlot(paz.getDurata())) ||
-                (!block2.isEmpty() && block1.size() + block2.size() >= Sala.getNumSlot(paz.getDurata())) ||
-                        //da errore perchè block2.get punta  a -1
-                (!block1.isEmpty() && block1.get(block1.size()-1) == s.getSlot(s.getBufferSize()-1) && (block1.size() + block2.size() >= Sala.getNumSlot(paz.getDurata()))) ||
-                (!block2.isEmpty() && (block1.get(block1.size()-1) == s.getSlot(s.getBufferSize()-1) || block2.get(block2.size()-1) == s.getSlot(s.getBufferSize()-1)) && (block1.size() + block2.size() >= Sala.getNumSlot(paz.getDurata())))
-                ){
-                    t = true;
-                    tf = true;
-                    block1.addAll(block2);
-                }
-            
-            
-            
-            /*for(int id = newStartSlot; id < s.getBufferSize() && !tf; id++){
-                Slot sl = s.getSlot(id);
-                if(paz.getUnita_operativa().equals(sl.getSpecialita())){
-                    if(!z)
-                        block1.add(sl);
-                    else
-                        block2.add(sl);
-                }else if(sl.isFree()){
-                    block2.add(sl);
-                    z = true;
-                }else{
-                    if(!block1.isEmpty())
-                        tf = true;                
-                }
-                newStartSlot = id;      
-            }
-            if(     
-                (!block1.isEmpty() && block2.isEmpty() && block1.get(block1.size()-1) == s.getSlot(s.getBufferSize()-1) && block1.size() + Ospedale.EXTRA_TIME >= Sala.getNumSlot(paz.getDurata())) ||
-                (!block2.isEmpty() && block2.get(block2.size()-1) == s.getSlot(s.getBufferSize()-1) && block1.size() + block2.size() + Ospedale.EXTRA_TIME >= Sala.getNumSlot(paz.getDurata()))
-            ){
-                add_last_slot = true;
-            */
-                /*for(int j = 0; j < Ospedale.EXTRA_TIME; j++){
-                    Slot extra_slot = new Slot(s.getBufferSize(), paz.getUnita_operativa(), paz);
-                    s.addSlot(extra_slot);
-                }*/
-            
-            /*if ((block1.size() + block2.size() >= Sala.getNumSlot(paz.getDurata())) || add_last_slot){
-                t = true;
-                block1.addAll(block2);
-                                //se si vuole allocare lo slot del "caso limite", occorre fare l'if (vedi ultime due condizioni sopra) e un new Slot con id "nuovo".
-            }else{
-                tf = false;
-                z = false;
-                block1.clear();
-                block2.clear();
-                if(newStartSlot < s.getBufferSize() - 1){        //se non ho finito di scansionare la sala, riprendo da dove l'ho lasciata
-                    i--;
-                    back = true;
-                }else                                       //finita la scansione della sala, resetto la variabile
-                    back = false;
-            }
-        }
-            if(newStartSlot < s.getBufferSize() - 1){        //se non ho finito di scansionare la sala, riprendo da dove l'ho lasciata
-                i--;
-                back = true;
-            }else
-                back = false;
-        }
-            
-        return p;*/
             return risultato;
     }
      //se ho più di una settimana va fatto il controllo sul giorno e che quindi sto schedulando solo quella settimana
@@ -381,12 +274,12 @@ public class Ospedale {
                 scan = false;
             }
          }
-        if(scan)            
+        if(scan){        
             for(int i = inizio_rimpiazzo; i < sala_tmp.getBufferSize() && i < reparto.get(indexSala).getBufferSize(); i++){
                 Paziente tmp_paz = sala_tmp.getSlot(i).getPaziente();
                 Paziente ex_paz = reparto.get(indexSala).getSlot(i).getPaziente();
                 //Paziente ex_paz_reparto = reparto.get(indexSala).getSlot(i).getPaziente();
-                Paziente ex_paz_sala_tmp = sala_tmp.getSlot(i-1).getPaziente();
+                //Paziente ex_paz_sala_tmp = sala_tmp.getSlot(i-1).getPaziente();
                 //ex_paz non c'è bisogno che venga messo come nuovo elemento se è null! null crea problemi all'equal
                 if(tmp_paz != null && ex_paz != null){
                     if(!tmp_paz.equals(ex_paz)){//entro se sono diversi perchè devo aggiungerlo allo stack
@@ -396,18 +289,15 @@ public class Ospedale {
                         Pair<Sala,Pair<Paziente, Integer>> nuovoElemento = new Pair<Sala,Pair<Paziente, Integer>>(sala_tmp, new Pair<Paziente, Integer>(ex_paz,reparto.get(indexSala).getStartSlotIndex(ex_paz) + 1));
                         daAssegnare.push(nuovoElemento);
                     }
-                    else {
-                        if(tmp_paz.equals(ex_paz) && !tmp_paz.equals(ex_paz_sala_tmp)){
-                          for(int j = inizio_rimpiazzo; j <= daAssegnare.prendiUltimo().getKey().getLastSlotIndex(daAssegnare.prendiUltimo().getValue().getKey()); j++){
-                            //Paziente pazienteSucc = new reparto.get(indexSala).getSlot(j).getPaziente();
-                            if(sala_tmp.getSlot(j).getPaziente() != null && !sala_tmp.getSlot(j).getPaziente().equals(p))
-                                sala_tmp.getSlot(j).libera();
-                                //slotDaLiberare.add(sala_tmp.getSlot(j));
-                          }
-                        }
-                    }
                 }
             }
+            for(int j = inizio_rimpiazzo; !daAssegnare.isEmpty() && j <= daAssegnare.prendiUltimo().getKey().getLastSlotIndex(daAssegnare.prendiUltimo().getValue().getKey()); j++){
+              //Paziente pazienteSucc = new reparto.get(indexSala).getSlot(j).getPaziente();
+              if(sala_tmp.getSlot(j).getPaziente() != null && !sala_tmp.getSlot(j).getPaziente().equals(p))
+                  sala_tmp.getSlot(j).libera();
+                  //slotDaLiberare.add(sala_tmp.getSlot(j));
+            }
+        }    
         //sala_tmp.liberaSlot(slotDaLiberare);
          reparto.clear();
          reparto.addAll(tmpSale);

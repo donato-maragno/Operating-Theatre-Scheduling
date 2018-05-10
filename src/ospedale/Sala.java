@@ -81,9 +81,9 @@ class Sala {
         boolean t = true;
         int c = 0;
         for (int i = 0; i < buffer.size() && t; i++){
-            if(buffer.get(i).getPaziente().equals(paz)){
+            if(buffer.get(i).getPaziente() != null && buffer.get(i).getPaziente().equals(paz)){
                 c++;
-                if(i+1 < buffer.size() && !buffer.get(i+1).getPaziente().equals(paz))
+                if(buffer.get(i+1).getPaziente() != null && i+1 < buffer.size() && !buffer.get(i+1).getPaziente().equals(paz))
                     t = false;
             }
                 
