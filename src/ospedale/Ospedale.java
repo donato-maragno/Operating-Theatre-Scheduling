@@ -185,8 +185,8 @@ public class Ospedale {
         Sala salaRisultato = null;
         Pair<ArrayList<Slot>,Sala> risultato = null;
         boolean ricercaCompletata=false;
-        boolean procedi = false;
-        boolean faiControllo = false;
+        //boolean procedi = false;
+        //boolean faiControllo = false;
         int indiceDiPartenzaSala = -1, count = 0, slotDiPartenza = startSlot;// contatoreDiVerificaAccettabilita=0;
         
         while(indiceDiPartenzaSala < 0)
@@ -204,23 +204,28 @@ public class Ospedale {
             bloccoSlotUtili.clear();
             if(salaCorrente.getGiorno() > reparto.get(indiceDiPartenzaSala).getGiorno()){
                 slotDiPartenza=0;
-                procedi = true;//perchè se inizio da 0 non mi deve fare più questo controllo
+                //procedi = true;//perchè se inizio da 0 non mi deve fare più questo controllo
                 
             }
+            else{
+                Slot slotPrecedente = salaCorrente.getSlot(slotDiPartenza - 1);
+                pazPrecedente = slotPrecedente.getPaziente();
+            }
+            /*
             if(!procedi){
                      faiControllo = false;
                  }
-            
+            */
             for(int j = slotDiPartenza; j < salaCorrente.getBufferSize(); j++)
             {
-                 if(j != 0){           
+                 /*if(j != 0){           
                     Slot slotPrecedente = salaCorrente.getSlot(j-1);
                     pazPrecedente = slotPrecedente.getPaziente();
-                    }
+                    }*/
                  
                 Slot slotCorrente = salaCorrente.getSlot(j);
                 Paziente pazCorrente = salaCorrente.getSlot(j).getPaziente();
-                if((pazCorrente == null || pazPrecedente == null || !pazCorrente.equals(pazPrecedente) || faiControllo))
+                if(pazCorrente == null || pazPrecedente == null || !pazCorrente.equals(pazPrecedente))/* || faiControllo*/
                 //VA FATTO IL CONTROLLO CHE IL PAZIENTE CHE RIMPIAZZIAMO NON HA GIA INIZIATO L'OPERAZIONE
                     if(slotCorrente.isFree() || slotCorrente.getSpecialita().equals(paz.getUnita_operativa())){
                         bloccoSlotUtili.add(slotCorrente);//errore, so di che slot parliamo ma non di che sala
@@ -235,7 +240,7 @@ public class Ospedale {
                     }
                     else
                         bloccoSlotUtili.clear();
-                faiControllo = true;
+                //faiControllo = true;
             }
             if(ricercaCompletata)
                 break;
@@ -312,15 +317,14 @@ public class Ospedale {
      
      public static int effettuaRitardo(){
            //questi vanno messi nel metodo che chiama quella funzione 
-         int ritardo = 180;//Ritardo.generateDelay();
-         salaRitardata = reparto.get(19);//Ritardo.salaDelPazienteDaRitardare();
-         Slot slotPazRitardato = salaRitardata.getSlot(16);//Ritardo.slotPazienteDaRitardare(s);
+         int ritardo = Ritardo.generateDelay();//90;
+         salaRitardata = Ritardo.salaDelPazienteDaRitardare();//reparto.get(19);
+         Slot slotPazRitardato = Ritardo.slotPazienteDaRitardare(salaRitardata);//salaRitardata.getSlot(12);
          pazRitardato = slotPazRitardato.getPaziente();
          pazRitardato.setDurata(ritardo + pazRitardato.getDurata());//sto modificando la durata del mio paziente
          Pair<Sala,Pair<Paziente, Integer>> pazienteR = new Pair<Sala,Pair<Paziente, Integer>>(salaRitardata, new Pair<Paziente, Integer>(pazRitardato,salaRitardata.getStartSlotIndex(pazRitardato)));
          StackSet pilaPazienti = new StackSet();
          pilaPazienti.push(pazienteR);
-         //pazSettimanaSucc = 
          rischedulaEPosticipaPaz(pilaPazienti);
          return ritardo;
     }
