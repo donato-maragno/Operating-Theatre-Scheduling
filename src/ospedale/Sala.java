@@ -83,7 +83,7 @@ class Sala {
         for (int i = 0; i < buffer.size() && t; i++){
             if(buffer.get(i).getPaziente() != null && buffer.get(i).getPaziente().equals(paz)){
                 c++;
-                if(buffer.get(i+1).getPaziente() != null && i+1 < buffer.size() && !buffer.get(i+1).getPaziente().equals(paz))
+                if(i+1 < buffer.size()&& buffer.get(i+1).getPaziente() != null  && !buffer.get(i+1).getPaziente().equals(paz))
                     t = false;
             }
                 
