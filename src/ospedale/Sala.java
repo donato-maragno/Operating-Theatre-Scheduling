@@ -77,7 +77,7 @@ class Sala {
         return this.buffer;
     }
     
-    public int countPaziente(Paziente paz){ //conta quanti slot ha occupato quel paziente
+    public int contaSlotPaziente(Paziente paz){ //conta quanti slot ha occupato quel paziente
         boolean t = true;
         int c = 0;
         for (int i = 0; i < buffer.size() && t; i++){
@@ -92,8 +92,8 @@ class Sala {
         return c;
     }
     //mi ridà Index dell'ultimo slot del paziente
-    public int getLastSlotIndex (Paziente p){
-        return this.getStartSlotIndex(p) + this.countPaziente(p);
+    public int getIndiceUltimoSlot (Paziente p){
+        return this.getStartSlotIndex(p) + this.contaSlotPaziente(p);
     }
     
     //rimpiazzo una sala con un'altra

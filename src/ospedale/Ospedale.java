@@ -5,8 +5,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Stack;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,6 +28,10 @@ public class Ospedale {
     static Sala salaRitardata = null;
     static ArrayList<Paziente> pazSettimanaSucc = new ArrayList<Paziente>();
     
+    public static final String GREEN = "\u001B[32m";
+    public static final String CYAN = "\u001B[36m";
+    public static final String RED = "\033[4;31m";   
+    
     public static void main(String[] args) {
         try {
             ReadDBPazienti();
@@ -37,9 +39,9 @@ public class Ospedale {
             System.out.println("DBSpecialità = " + DBUnita_operative.size());
             ReadDBReparto();
             System.out.println("Reparto = " + reparto.size());
-            System.out.println("CALENDARIO ORIGINALE REPARTO");
+            System.out.println(RED + "CALENDARIO ORIGINALE REPARTO");
             for(Sala s : reparto){
-                System.out.println("Sala " + s.getId() + " - Giorno " + s.getGiorno());
+                System.out.println(CYAN + "Sala " + s.getId() + GREEN + " - Giorno " + s.getGiorno());
                 System.out.println(s);
             }
             System.out.println();
@@ -55,9 +57,9 @@ public class Ospedale {
                 System.out.println("Non ci sono pazienti posticipati alla settimana successiva");
             System.out.println();
             
-            System.out.println("CALENDARIO MODIFICATO REPARTO");
+            System.out.println(RED + "CALENDARIO MODIFICATO REPARTO");
             for(Sala s : reparto){
-                System.out.println("Sala " + s.getId() + " - Giorno " + s.getGiorno());
+                System.out.println(CYAN + "Sala " + s.getId() + GREEN + " - Giorno " + s.getGiorno());
                 System.out.println(s);
             }
             
@@ -180,7 +182,7 @@ public class Ospedale {
     }
     
     @SuppressWarnings("empty-statement")
-     public static Pair<ArrayList<Slot>,Sala> nextCompatibleSlot(Paziente paz, Sala sala, int startSlot){ //la sala serve solo per capire da dove iniziare. L'array va istanziato però il contenuto è solo ADD da cose gia esistenti che prendo da reparto che è gia in questa classe
+     public static Pair<ArrayList<Slot>,Sala> successiviSlotCompatibili(Paziente paz, Sala sala, int startSlot){ //la sala serve solo per capire da dove iniziare. L'array va istanziato però il contenuto è solo ADD da cose gia esistenti che prendo da reparto che è gia in questa classe
         ArrayList<Slot> bloccoSlotUtili = new ArrayList<Slot>();
         Sala salaRisultato = null;
         Pair<ArrayList<Slot>,Sala> risultato = null;
@@ -254,7 +256,7 @@ public class Ospedale {
     }
      //se ho più di una settimana va fatto il controllo sul giorno e che quindi sto schedulando solo quella settimana
     @SuppressWarnings("empty-statement")
-     public static void rischedulaEPosticipaPaz(StackSet daAssegnare){
+     public static void rischedulaEPosticipaPaz(QueueSet daAssegnare){
          Paziente pazienteSettimanaSucc = null;
          ArrayList<Sala> tmpSale = cloneReparto();
          ArrayList<Slot> slotDaLiberare = new ArrayList<Slot>();
@@ -272,17 +274,17 @@ public class Ospedale {
              //bisogna stare atttenti perche se sono più di 1 i ritardati, "inizio_rimpiazzo" potrebbe non essere giusto (forse)
              sala_tmp.replaceSlots(pazRitardato, inizio_rimpiazzo, pazRitardato.getDurata(), true);
          }else{
-            Pair<ArrayList<Slot>,Sala> compatibleSlots = nextCompatibleSlot(p, s, inizio_rimpiazzo);
-            int sala_dei_compatibili_index = Ospedale.cercaSala(compatibleSlots.getValue());
+            Pair<ArrayList<Slot>,Sala> slotCompatibili = successiviSlotCompatibili(p, s, inizio_rimpiazzo);
+            int sala_dei_compatibili_index = Ospedale.cercaSala(slotCompatibili.getValue());
                 tmpSale = cloneReparto();
                 if(sala_dei_compatibili_index != -1)
                     sala_tmp = tmpSale.get(sala_dei_compatibili_index);
                 
             //}
             
-            if(!compatibleSlots.getKey().isEmpty()){       
+            if(!slotCompatibili.getKey().isEmpty()){       
                indexSala = sala_dei_compatibili_index;
-               inizio_rimpiazzo = compatibleSlots.getKey().get(0).getId() - 1;
+               inizio_rimpiazzo = slotCompatibili.getKey().get(0).getId() - 1;
                sala_tmp.replaceSlots(p, inizio_rimpiazzo, p.getDurata() , false);
             }else{
                 pazienteSettimanaSucc=p;
@@ -301,7 +303,7 @@ public class Ospedale {
                     }
                 }
             }
-            for(int j = inizio_rimpiazzo; !daAssegnare.isEmpty() && j < reparto.get(cercaSala(daAssegnare.prendiUltimo().getKey())).getLastSlotIndex(daAssegnare.prendiUltimo().getValue().getKey()); j++){
+            for(int j = inizio_rimpiazzo; !daAssegnare.isEmpty() && j < reparto.get(cercaSala(daAssegnare.prendiUltimo().getKey())).getIndiceUltimoSlot(daAssegnare.prendiUltimo().getValue().getKey()); j++){
                 if(sala_tmp.getSlot(j).getPaziente() != null && !sala_tmp.getSlot(j).getPaziente().equals(p))
                   sala_tmp.getSlot(j).libera();
             }
@@ -323,7 +325,7 @@ public class Ospedale {
          pazRitardato = slotPazRitardato.getPaziente();
          pazRitardato.setDurata(ritardo + pazRitardato.getDurata());//sto modificando la durata del mio paziente
          Pair<Sala,Pair<Paziente, Integer>> pazienteR = new Pair<Sala,Pair<Paziente, Integer>>(salaRitardata, new Pair<Paziente, Integer>(pazRitardato,salaRitardata.getStartSlotIndex(pazRitardato)));
-         StackSet pilaPazienti = new StackSet();
+         QueueSet pilaPazienti = new QueueSet();
          pilaPazienti.push(pazienteR);
          rischedulaEPosticipaPaz(pilaPazienti);
          return ritardo;

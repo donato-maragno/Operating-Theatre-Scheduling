@@ -10,10 +10,10 @@ import javafx.util.Pair;
  *
  * @author Donato
  */
-public class StackSet{
+public class QueueSet{
     LinkedList <Pair<Sala,Pair<Paziente, Integer>>> s;
     
-    public StackSet(){
+    public QueueSet(){
         s = new LinkedList <Pair<Sala,Pair<Paziente, Integer>>>();
     }
     
