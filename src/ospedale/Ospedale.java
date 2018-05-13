@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Scanner;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,19 +36,23 @@ public class Ospedale {
     public static void main(String[] args) {
         try {
             ReadDBPazienti();
-            System.out.println("DBPazienti = " + DBPazienti.size());
-            System.out.println("DBSpecialità = " + DBUnita_operative.size());
             ReadDBReparto();
-            System.out.println("Reparto = " + reparto.size());
             System.out.println(RED + "CALENDARIO ORIGINALE REPARTO");
             for(Sala s : reparto){
                 System.out.println(CYAN + "Sala " + s.getId() + GREEN + " - Giorno " + s.getGiorno());
                 System.out.println(s);
             }
             System.out.println();
-            
-            int ritardo = effettuaRitardo();
-            System.out.println("Il paziente " + pazRitardato.getId() + " ha subito un ritardo di: " + ritardo);
+            System.out.println("Quanti pazienti vuoi ritardare? ");
+            Scanner input = new Scanner(System.in);
+            int numeroPazienti = input.nextInt();
+            int c = 0;
+            for(int i = 0; i < numeroPazienti; i++){
+                int ritardo = effettuaRitardo(c);
+                c = c + 4;//mi cambia sempre giorno
+                System.out.println("Il paziente " + pazRitardato.getId() + " ha subito un ritardo di: " + ritardo);
+            }
+            System.out.println();
             if(!pazSettimanaSucc.isEmpty()){
                 System.out.println("I pazienti spostati alla settimana successiva sono: ");
                 for (int i = 0; i < pazSettimanaSucc.size(); i++){
@@ -317,10 +322,10 @@ public class Ospedale {
          } 
     }
      
-     public static int effettuaRitardo(){
+     public static int effettuaRitardo(int indiceSala){
            //questi vanno messi nel metodo che chiama quella funzione 
          int ritardo = Ritardo.generateDelay();//90;
-         salaRitardata = Ritardo.salaDelPazienteDaRitardare();//reparto.get(19);
+         salaRitardata = reparto.get(indiceSala);//Ritardo.salaDelPazienteDaRitardare();//reparto.get(19);
          Slot slotPazRitardato = Ritardo.slotPazienteDaRitardare(salaRitardata);//salaRitardata.getSlot(12);
          pazRitardato = slotPazRitardato.getPaziente();
          pazRitardato.setDurata(ritardo + pazRitardato.getDurata());//sto modificando la durata del mio paziente

@@ -13,8 +13,13 @@ public class Ritardo {
     }
     
     public static Slot slotPazienteDaRitardare(Sala s){
-        Random random = new Random();
-        Slot slotPazRitardato = s.getSlot(random.nextInt(s.getBufferSize()-1));// qui meno 1
+        Slot slotPazRitardato = null;
+        //mi assicuro di non prendere uno slot senza paziente
+        do{
+            Random random = new Random();
+            slotPazRitardato = s.getSlot(random.nextInt(s.getBufferSize()-1));// qui meno 1
+        }while(slotPazRitardato.isFree());
+        
         return slotPazRitardato;
     }
     
