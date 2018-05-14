@@ -3,6 +3,8 @@ package ospedale;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -37,6 +39,8 @@ public class Ospedale {
         try {
             ReadDBPazienti();
             ReadDBReparto();
+            int d = 0;
+            //WriteDBreparto(d);
             System.out.println(RED + "CALENDARIO ORIGINALE REPARTO");
             for(Sala s : reparto){
                 System.out.println(CYAN + "Sala " + s.getId() + GREEN + " - Giorno " + s.getGiorno());
@@ -46,7 +50,7 @@ public class Ospedale {
             System.out.println("Quanti pazienti vuoi ritardare? ");
             Scanner input = new Scanner(System.in);
             int numeroPazienti = input.nextInt();
-            int c = 0;
+            int c = 0;//lo utilizzo per ritardare un certo numero di pazienti, va migliorato
             for(int i = 0; i < numeroPazienti; i++){
                 int ritardo = effettuaRitardo(c);
                 c = c + 4;//mi cambia sempre giorno
@@ -67,12 +71,62 @@ public class Ospedale {
                 System.out.println(CYAN + "Sala " + s.getId() + GREEN + " - Giorno " + s.getGiorno());
                 System.out.println(s);
             }
+            d = 1;
+            WriteDBreparto();
             
         } catch (IOException ex) {
             Logger.getLogger(Ospedale.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         
+    }
+    //creo un file excel per la stampa
+    public static void WriteDBreparto() throws FileNotFoundException, IOException{
+        XSSFWorkbook wbRisultato = new XSSFWorkbook();
+        XSSFSheet sheetRisultato = wbRisultato.createSheet("risultato");
+        int rowNum = 0;
+        int giorno = 0;
+        
+        for (int i = 0; i < reparto.size(); i++){
+            Sala s = reparto.get(i);
+            if(i % 4 == 0){
+                giorno += 1;
+                Row rowGiorno = sheetRisultato.createRow(rowNum++);
+                Cell cellGiorno = rowGiorno.createCell(0);
+                cellGiorno.setCellValue("Giorno: " + giorno);
+            }
+            Row row = sheetRisultato.createRow(rowNum++);
+            int cellnum = 0;
+            
+            for (int j = 0; j < s.getBufferSize(); j++){
+                Cell cell = row.createCell(cellnum++);
+                if(reparto.get(i).getSlot(j).isFree())
+                    cell.setCellValue((Integer)0);
+                else
+                    cell.setCellValue((Integer)reparto.get(i).getSlot(j).getPaziente().getId());
+            }
+            
+        }
+        try 
+        {
+            //Write the workbook in file system
+            /*if(d == 0){
+                FileOutputStream out = new FileOutputStream(new File("C:\\Users\\Donato\\Documents\\NetBeansProjects\\Ospedale\\output\\originale.xlsx"));
+                wbRisultato.write(out);
+                out.close();
+                System.out.println("originale written successfully on disk.");
+            }*/
+            //else{
+               FileOutputStream out = new FileOutputStream(new File("C:\\Users\\Donato\\Documents\\NetBeansProjects\\Ospedale\\output\\dopoSchedulazione.xlsx"));
+                wbRisultato.write(out);
+                out.close();
+                System.out.println("dopoSchedulazione written successfully on disk."); 
+            //}
+        } 
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
     
     public static void ReadDBPazienti() throws IOException {
