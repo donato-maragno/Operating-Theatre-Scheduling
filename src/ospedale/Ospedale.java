@@ -1,12 +1,15 @@
 
 package ospedale;
 
+import java.awt.Color;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import static java.lang.Math.random;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.TreeSet;
 import java.util.logging.Level;
@@ -14,8 +17,13 @@ import java.util.logging.Logger;
 import javafx.util.Pair;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.FormulaEvaluator;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.PatternFormatting;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 
@@ -35,44 +43,47 @@ public class Ospedale {
     public static final String CYAN = "\u001B[36m";
     public static final String RED = "\033[4;31m";   
     
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         try {
-            ReadDBPazienti();
+            leggiDBPazienti();
             ReadDBReparto();
-            int d = 0;
-            //WriteDBreparto(d);
             System.out.println(RED + "CALENDARIO ORIGINALE REPARTO");
             for(Sala s : reparto){
                 System.out.println(CYAN + "Sala " + s.getId() + GREEN + " - Giorno " + s.getGiorno());
                 System.out.println(s);
             }
-            System.out.println();
-            System.out.println("Quanti pazienti vuoi ritardare? ");
-            Scanner input = new Scanner(System.in);
-            int numeroPazienti = input.nextInt();
-            int c = 0;//lo utilizzo per ritardare un certo numero di pazienti, va migliorato
-            for(int i = 0; i < numeroPazienti; i++){
-                int ritardo = effettuaRitardo(c);
-                c = c + 4;//mi cambia sempre giorno
+            boolean r = false;
+            do{
+                System.out.println();
+                System.out.println("in che sala vuoi ritardare il paziente? ");
+                Scanner input = new Scanner(System.in);
+                int salaRitardo = input.nextInt();
+                int ritardo = effettuaRitardo(salaRitardo);
                 System.out.println("Il paziente " + pazRitardato.getId() + " ha subito un ritardo di: " + ritardo);
-            }
-            System.out.println();
-            if(!pazSettimanaSucc.isEmpty()){
-                System.out.println("I pazienti spostati alla settimana successiva sono: ");
-                for (int i = 0; i < pazSettimanaSucc.size(); i++){
-                    System.out.print(pazSettimanaSucc.get(i).getId() + "\t");
+
+                System.out.println();
+                if(!pazSettimanaSucc.isEmpty()){
+                    System.out.println("I pazienti spostati alla settimana successiva sono: ");
+                    for (int i = 0; i < pazSettimanaSucc.size(); i++){
+                        System.out.print(pazSettimanaSucc.get(i).getId() + "\t");
+                    }
+                }else
+                    System.out.println("Non ci sono pazienti posticipati alla settimana successiva");
+                System.out.println();
+
+                System.out.println(RED + "CALENDARIO MODIFICATO REPARTO");
+                for(Sala s : reparto){
+                    System.out.println(CYAN + "Sala " + s.getId() + GREEN + " - Giorno " + s.getGiorno());
+                    System.out.println(s);
                 }
-            }else
-                System.out.println("Non ci sono pazienti posticipati alla settimana successiva");
-            System.out.println();
-            
-            System.out.println(RED + "CALENDARIO MODIFICATO REPARTO");
-            for(Sala s : reparto){
-                System.out.println(CYAN + "Sala " + s.getId() + GREEN + " - Giorno " + s.getGiorno());
-                System.out.println(s);
-            }
-            d = 1;
-            WriteDBreparto();
+                System.out.println("Continuare? ");
+                Scanner input1 = new Scanner(System.in);
+                String risposta = input1.nextLine();
+                risposta.toLowerCase();
+                if(!risposta.equals("si"))
+                    r = true;
+            }while(r == false);
+            scriviDBreparto();
             
         } catch (IOException ex) {
             Logger.getLogger(Ospedale.class.getName()).log(Level.SEVERE, null, ex);
@@ -81,11 +92,18 @@ public class Ospedale {
         
     }
     //creo un file excel per la stampa
-    public static void WriteDBreparto() throws FileNotFoundException, IOException{
+    public static void scriviDBreparto() throws FileNotFoundException, IOException{
         XSSFWorkbook wbRisultato = new XSSFWorkbook();
         XSSFSheet sheetRisultato = wbRisultato.createSheet("risultato");
+        XSSFCellStyle style = wbRisultato.createCellStyle();
+        style.setFillPattern(PatternFormatting.FINE_DOTS);
+        //style.setFillBackgroundColor(IndexedColors.BRIGHT_GREEN.index);
+        XSSFColor myColor = new XSSFColor(Color.GREEN);
+        style.setFillForegroundColor(myColor);
+        style.setFillBackgroundColor(myColor);
         int rowNum = 0;
         int giorno = 0;
+        int numSala = 1;
         
         for (int i = 0; i < reparto.size(); i++){
             Sala s = reparto.get(i);
@@ -93,11 +111,13 @@ public class Ospedale {
                 giorno += 1;
                 Row rowGiorno = sheetRisultato.createRow(rowNum++);
                 Cell cellGiorno = rowGiorno.createCell(0);
-                cellGiorno.setCellValue("Giorno: " + giorno);
+                cellGiorno.setCellValue("Giorno " + giorno + ":");
+                cellGiorno.setCellStyle(style);
             }
             Row row = sheetRisultato.createRow(rowNum++);
-            int cellnum = 0;
-            
+            int cellnum = 1;
+            Cell cellSala = row.createCell(0);
+            cellSala.setCellValue("Sala " + numSala++ + ":");
             for (int j = 0; j < s.getBufferSize(); j++){
                 Cell cell = row.createCell(cellnum++);
                 if(reparto.get(i).getSlot(j).isFree())
@@ -105,7 +125,8 @@ public class Ospedale {
                 else
                     cell.setCellValue((Integer)reparto.get(i).getSlot(j).getPaziente().getId());
             }
-            
+            if(numSala == 5)
+                numSala = 1;
         }
         try 
         {
@@ -129,7 +150,7 @@ public class Ospedale {
         }
     }
     
-    public static void ReadDBPazienti() throws IOException {
+    public static void leggiDBPazienti() throws IOException {
         FileInputStream fis = new FileInputStream(new File(DBPAZIENTI));
         XSSFWorkbook wb = new XSSFWorkbook(fis);
         XSSFSheet sheet = wb.getSheetAt(0); //0 sta per il foglio 0 (1017 pazienti)
@@ -331,7 +352,7 @@ public class Ospedale {
          boolean scan = true;
          if(p.equals(pazRitardato)){
              //bisogna stare atttenti perche se sono più di 1 i ritardati, "inizio_rimpiazzo" potrebbe non essere giusto (forse)
-             sala_tmp.replaceSlots(pazRitardato, inizio_rimpiazzo, pazRitardato.getDurata(), true);
+             sala_tmp.rimpiazzaSlots(pazRitardato, inizio_rimpiazzo, pazRitardato.getDurata(), true);
          }else{
             Pair<ArrayList<Slot>,Sala> slotCompatibili = successiviSlotCompatibili(p, s, inizio_rimpiazzo);
             int sala_dei_compatibili_index = Ospedale.cercaSala(slotCompatibili.getValue());
@@ -344,7 +365,7 @@ public class Ospedale {
             if(!slotCompatibili.getKey().isEmpty()){       
                indexSala = sala_dei_compatibili_index;
                inizio_rimpiazzo = slotCompatibili.getKey().get(0).getId() - 1;
-               sala_tmp.replaceSlots(p, inizio_rimpiazzo, p.getDurata() , false);
+               sala_tmp.rimpiazzaSlots(p, inizio_rimpiazzo, p.getDurata() , false);
             }else{
                 pazienteSettimanaSucc=p;
                 scan = false;
@@ -357,7 +378,7 @@ public class Ospedale {
                 //ex_paz non c'è bisogno che venga messo come nuovo elemento se è null! null crea problemi all'equal
                 if(tmp_paz != null && ex_paz != null){
                     if(!tmp_paz.equals(ex_paz)){//entro se sono diversi perchè devo aggiungerlo allo stack
-                        Pair<Sala,Pair<Paziente, Integer>> nuovoElemento = new Pair<Sala,Pair<Paziente, Integer>>(sala_tmp, new Pair<Paziente, Integer>(ex_paz,reparto.get(indexSala).getStartSlotIndex(ex_paz) + 1));
+                        Pair<Sala,Pair<Paziente, Integer>> nuovoElemento = new Pair<Sala,Pair<Paziente, Integer>>(sala_tmp, new Pair<Paziente, Integer>(ex_paz,reparto.get(indexSala).getIndiceDiInizio(ex_paz) + 1));
                         daAssegnare.push(nuovoElemento);
                     }
                 }
@@ -383,7 +404,7 @@ public class Ospedale {
          Slot slotPazRitardato = Ritardo.slotPazienteDaRitardare(salaRitardata);//salaRitardata.getSlot(12);
          pazRitardato = slotPazRitardato.getPaziente();
          pazRitardato.setDurata(ritardo + pazRitardato.getDurata());//sto modificando la durata del mio paziente
-         Pair<Sala,Pair<Paziente, Integer>> pazienteR = new Pair<Sala,Pair<Paziente, Integer>>(salaRitardata, new Pair<Paziente, Integer>(pazRitardato,salaRitardata.getStartSlotIndex(pazRitardato)));
+         Pair<Sala,Pair<Paziente, Integer>> pazienteR = new Pair<Sala,Pair<Paziente, Integer>>(salaRitardata, new Pair<Paziente, Integer>(pazRitardato,salaRitardata.getIndiceDiInizio(pazRitardato)));
          QueueSet pilaPazienti = new QueueSet();
          pilaPazienti.push(pazienteR);
          rischedulaEPosticipaPaz(pilaPazienti);

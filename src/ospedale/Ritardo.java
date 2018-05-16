@@ -14,9 +14,9 @@ public class Ritardo {
     
     public static Slot slotPazienteDaRitardare(Sala s){
         Slot slotPazRitardato = null;
+        Random random = new Random();
         //mi assicuro di non prendere uno slot senza paziente
-        do{
-            Random random = new Random();
+        do{ 
             slotPazRitardato = s.getSlot(random.nextInt(s.getBufferSize()-1));// qui meno 1
         }while(slotPazRitardato.isFree());
         

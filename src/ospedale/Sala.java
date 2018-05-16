@@ -34,7 +34,7 @@ class Sala {
     }
     //wip serve nel caso dovessimo usare il replaceSlots per un paziente la cui operazione ritarda
     //ho messo void
-    public void replaceSlots (Paziente p, int startSlot, int durata, boolean wip){
+    public void rimpiazzaSlots (Paziente p, int startSlot, int durata, boolean wip){
         int nSlot = Sala.getNumSlot(durata);
         //int endSlot = startSlot;
         for(int i = startSlot; i < buffer.size() && nSlot > 0; i++){
@@ -93,7 +93,7 @@ class Sala {
     }
     //mi ridà Index dell'ultimo slot del paziente
     public int getIndiceUltimoSlot (Paziente p){
-        return this.getStartSlotIndex(p) + this.contaSlotPaziente(p);
+        return this.getIndiceDiInizio(p) + this.contaSlotPaziente(p);
     }
     
     //rimpiazzo una sala con un'altra
@@ -102,7 +102,7 @@ class Sala {
         this.buffer.addAll(s.buffer);
     }
     // in totale, non consecutivi
-    public int countFree(){ 
+    public int countaLiberi(){ 
         int c = 0;
         for (int i = 0; i < buffer.size(); i++)
             if (buffer.get(i).isFree())
@@ -110,21 +110,21 @@ class Sala {
         return c;
     }
     //conta quanti sono gli slot liberi (se presenti) subito dopo il paziente
-    public int countFirstBlock(Paziente paziente){
+    public int countaPrimoBlocco(Paziente paziente){
         boolean f = false;      //il blocco del paziente non è ancora finito
         int c = 0;
         for(int i = 0; i < buffer.size() && !f; i++)
             if(buffer.get(i).getPaziente().equals(paziente)){
                 if(i+1 < buffer.size()-1 && !buffer.get(i+1).getPaziente().equals(paziente)){
                     f = true;
-                    c = this.countFirstBlock(getTimeBySlot(i));
+                    c = this.countFirstBlock(getDurataDaNSlot(i));
                 }
             }
             
         return c;
     }
     
-    public static int getTimeBySlot (int nSlot){
+    public static int getDurataDaNSlot (int nSlot){
         return (int) (nSlot*Ospedale.DURATASLOT);
     }
     
@@ -142,7 +142,7 @@ class Sala {
         return c;
     }
     
-    public int getStartSlotIndex(Paziente p){
+    public int getIndiceDiInizio(Paziente p){
         boolean t = false;
         int index = -1;
         for(int i = 0; i < this.getBufferSize() && !t; i++){
